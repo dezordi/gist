@@ -71,6 +71,8 @@ class GetSubSamplingByState:
         filter_by_state_cmd = f'''augur filter \
                                 --metadata {self.ncov_dir_data_job}/metadata_gisaid.tsv.gz \
                                 --sequence-index {self.ncov_dir_data_job}/sequence_index_gisaid.tsv.gz \
+                                --min-date {self.valid_subsampling_schema.min_date} \
+                                --max-date {self.valid_subsampling_schema.max_date} \
                                 --min-length {str(self.valid_subsampling_schema.min_genome_len)} \
                                 --query "(country == 'Brazil') & (division == '{state.name}') & (pango_lineage == {self.valid_subsampling_schema.target_lineages}) & (host == 'Human') " \
                                 --subsample-max-sequences {str(state.max_genomes)} \
@@ -87,6 +89,8 @@ class GetSubSamplingByState:
         filter_by_country_cmd = f'''augur filter \
                                 --metadata {self.ncov_dir_data_job}/metadata_gisaid.tsv.gz \
                                 --sequence-index {self.ncov_dir_data_job}/sequence_index_gisaid.tsv.gz \
+                                --min-date {self.valid_subsampling_schema.min_date} \
+                                --max-date {self.valid_subsampling_schema.max_date} \
                                 --min-length {str(self.valid_subsampling_schema.min_genome_len)} \
                                 --query "(country == '{country.name}') & (pango_lineage == {self.valid_subsampling_schema.target_lineages}) & (host == 'Human')" \
                                 --subsample-max-sequences {str(country.max_genomes)} \
@@ -103,6 +107,7 @@ class GetSubSamplingByState:
         filter_outgroup_cmd = f'''augur filter \
                                 --metadata {self.ncov_dir_data_job}/metadata_gisaid.tsv.gz \
                                 --sequence-index {self.ncov_dir_data_job}/sequence_index_gisaid.tsv.gz \
+                                --max-date {self.valid_subsampling_schema.min_date} \
                                 --min-length {str(self.valid_subsampling_schema.min_genome_len)} \
                                 --query "pango_lineage == {self.valid_subsampling_schema.outgroup_lineages} & (host == 'Human')" \
                                 --subsample-max-sequences 30 \
