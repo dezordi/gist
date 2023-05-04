@@ -15,10 +15,13 @@ def cli():
 @click.option("--sequences", help="path to gisaid sequences tar.xz", required=True)
 @click.option("--metadata", help="path to gisaid metadata tar.xz", required=True)
 @click.option("--ncov_dir", help="path to ncov dir", required=True)
+@click.option("--threads", help="threads", default=2, type=int)
 @click.argument("subsampling_json_schema")
-def get_states(sequences, metadata, ncov_dir, subsampling_json_schema):
+def get_states(sequences, metadata, ncov_dir, threads, subsampling_json_schema):
     "Get brazilian state sequences based on json input"
-    GetSubSamplingByState(sequences, metadata, ncov_dir, subsampling_json_schema)
+    GetSubSamplingByState(
+        sequences, metadata, ncov_dir, threads, subsampling_json_schema
+    )
 
 
 @cli.command()

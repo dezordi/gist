@@ -8,13 +8,17 @@ import sys
 import click
 import os
 import subprocess
-import tarfile
-from Bio import SeqIO
+from concurrent.futures import ThreadPoolExecutor
 
 
 class GetSubSamplingByState:
     def __init__(
-        self, sequences: str, metadata: str, ncov_dir: str, subsampling_json_schema: str
+        self,
+        sequences: str,
+        metadata: str,
+        ncov_dir: str,
+        threads: int,
+        subsampling_json_schema: str,
     ) -> dict:
         try:
             for file in sequences, metadata, subsampling_json_schema:
@@ -33,6 +37,7 @@ class GetSubSamplingByState:
         self.sequences = sequences
         self.metadata = metadata
         self.ncov_dir_scripts = os.path.join(ncov_dir, "scripts")
+        self.threads = threads
         self.ncov_dir_data_job = os.path.join(
             ncov_dir, "data", valid_subsampling_schema.job_name
         )
@@ -146,23 +151,37 @@ class GetSubSamplingByState:
         return output
 
     def get_samples(self) -> str:
+        sub_sampling_target_states = []
         sub_sampling_files = []
-        if self.valid_subsampling_schema.target_states:
-            sub_sampling_target_states = []
+
+        with ThreadPoolExecutor(max_workers=self.threads) as executor:
+            job_pool = []
             for state in self.valid_subsampling_schema.states:
-                if state.sigla in self.valid_subsampling_schema.target_states:
-                    sub_sampling_target_states.append(self._filter_state(state))
+                job = executor.submit(self._filter_state, state)
+                job.state_sigla = state.sigla
+                job_pool.append(job)
+
+            for job in job_pool:
+                subsampled_file = job.result()
+                if job.state_sigla in self.valid_subsampling_schema.target_states:
+                    sub_sampling_target_states.append(subsampled_file)
                 else:
-                    sub_sampling_files.append(self._filter_state(state))
-            sub_sampling_target_states = " ".join(sub_sampling_target_states)
-        else:
-            for state in self.valid_subsampling_schema.states:
-                sub_sampling_files.append(self._filter_state(state))
+                    sub_sampling_files.append(subsampled_file)
 
         if self.valid_subsampling_schema.countries:
-            for country in self.valid_subsampling_schema.countries:
-                sub_sampling_files.append(self._filter_country(country))
+            with ThreadPoolExecutor(max_workers=self.threads) as executor:
+                job_pool = []
+                for country in self.valid_subsampling_schema.countries:
+                    job = executor.submit(self._filter_country, country)
+                    job_pool.append(job)
+                for job in job_pool:
+                    subsampled_file = job.result()
+                    sub_sampling_files.append(subsampled_file)
+
         sub_sampling_files.append(self._filter_outgroup())
+
+        if self.valid_subsampling_schema.target_states:
+            sub_sampling_target_states = " ".join(sub_sampling_target_states)
         sub_sampling_files = " ".join(sub_sampling_files)
 
         if self.valid_subsampling_schema.target_states:
