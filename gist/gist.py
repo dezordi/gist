@@ -293,6 +293,7 @@ class GetSimilarGenomes:
 
     def filter_blast_results(self) -> list:
         blast_results = os.path.join(self.output_job_dir, "gisaid_blastn.tsv")
+        output = os.path.join(self.output_job_dir, "gisaid_blastn_filtered.tsv")
         blast_columns = ["qseqid", "sseqid", "pident", "evalue", "bitscore", "qcovhsp"]
         blast_results_df = pd.read_csv(
             blast_results, names=blast_columns, delimiter="\t"
@@ -310,10 +311,11 @@ class GetSimilarGenomes:
         ]
         blast_results_df = blast_results_df.sort_values(by="bitscore", ascending=False)
         blast_results_df = blast_results_df.drop_duplicates(subset=["sseqid"])
-        blast_results_df = df.head(
+        blast_results_df = blast_results_df.head(
             self.valid_subsampling_schema.max_number_of_similar_genomes
         )
         gisaid_filtered_matches = blast_results_df["sseqid"].tolist()
+        blast_results_df.to_csv(output, sep="\t", index=False)
 
         return gisaid_filtered_matches
 
@@ -327,12 +329,12 @@ class GetSimilarGenomes:
         output_metadata = os.path.join(
             self.output_job_dir, "gisaid_similar_genomes.tsv"
         )
+        selected_records = []
         with open(self.sequences, "r") as handle:
             records = SeqIO.parse(handle, "fasta")
-        selected_records = []
-        for record in records:
-            if record.id in gisaid_filtered_matches:
-                selected_records.append(record)
+            for record in records:
+                if record.id in gisaid_filtered_matches:
+                    selected_records.append(record)
         with open(output_sequences, "w") as output:
             SeqIO.write(selected_records, output, "fasta")
 
