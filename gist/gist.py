@@ -268,7 +268,7 @@ class GetSimilarGenomes:
             output_dir, valid_subsampling_schema.job_name
         )
         self.threads = threads
-        self.get_similar_genomes_sampling_schema = get_similar_genomes_sampling_schema
+        self.valid_subsampling_schema = valid_subsampling_schema
         self.get_gisaid_filtered_genomes()
 
     def create_blast_database(self) -> None:
@@ -276,6 +276,9 @@ class GetSimilarGenomes:
         stdout, stderr = make_db()
 
     def perform_blast(self) -> None:
+        if os.path.exists(self.output_job_dir) == False:
+            print(f"Creating {self.output_job_dir}")
+            os.mkdir(self.output_job_dir)
         output = os.path.join(self.output_job_dir, "gisaid_blastn.tsv")
         blast = NcbiblastnCommandline(
             query=self.input_file,
@@ -286,7 +289,7 @@ class GetSimilarGenomes:
             evalue=0.00001,
             num_threads=self.threads,
         )
-        stdout, stderr = cline()
+        stdout, stderr = blast()
 
     def filter_blast_results(self) -> list:
         blast_results = os.path.join(self.output_job_dir, "gisaid_blastn.tsv")
@@ -297,18 +300,18 @@ class GetSimilarGenomes:
         blast_results_df = blast_results_df[blast_results_df["qcovhsp"] >= 99.9]
         blast_results_df = blast_results_df[
             (
-                dblast_results_dff["pident"]
-                >= self.get_similar_genomes_sampling_schema.min_id
+                blast_results_df["pident"]
+                >= self.valid_subsampling_schema.min_id
             )
             & (
                 blast_results_df["pident"]
-                <= self.get_similar_genomes_sampling_schema.max_id
+                <= self.valid_subsampling_schema.max_id
             )
         ]
         blast_results_df = blast_results_df.sort_values(by="bitscore", ascending=False)
         blast_results_df = blast_results_df.drop_duplicates(subset=["sseqid"])
         blast_results_df = df.head(
-            self.get_similar_genomes_sampling_schema.max_number_of_similar_genomes
+            self.valid_subsampling_schema.max_number_of_similar_genomes
         )
         gisaid_filtered_matches = blast_results_df["sseqid"].tolist()
 
