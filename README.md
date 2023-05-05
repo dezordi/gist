@@ -1,6 +1,6 @@
-# \_GI\_said \_S\_ubsampling \_T\_oolkit
+## GIsaid Subsampling Toolkit
 
-Just a set of scripts organized as a toolkit for conducting sample analyses based on the Augur tool, focused on Brazilian states.
+Just a set of scripts organized as a toolkit for conducting sub-sample analyses based on the Augur tool, focused on Brazilian states.
 
 ### Install
 
@@ -9,7 +9,7 @@ Just a set of scripts organized as a toolkit for conducting sample analyses base
 ```bash
 git clone https://github.com/dezordiPhD/gist.git
 git add gist
-conda env create -f env/gis_ubuntu.yml
+conda env create -f env/gist_ubuntu.yml
 conda activate gist
 pip install .
 
@@ -32,7 +32,7 @@ This mode get subsampling data based on specific lineages on specific brazilian 
 gist get-states --ncov_dir ncov --sequences <gisaid_genomes.tar.xz> --metadata <gisaid_metadata.tar.xz> --threads <number_of_threads> templates/get_by_states.json              
 ```
 
-### get-genomes
+#### get-genomes
 
 Get gisaid genomes based on blast analysis. The input json file should be configured as the template present on `templates/get_similar_genomes.json`
 
