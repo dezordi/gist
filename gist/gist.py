@@ -413,6 +413,6 @@ class GetAlignment:
         self.fix_sequence_names(output, renamed_alignment)
 
         if mask_pos:
-            mask_alignment(renamed_alignment)
+            self.mask_alignment(renamed_alignment)
         
         os.remove(renamed_alignment)
