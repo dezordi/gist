@@ -377,7 +377,8 @@ class GetAlignment:
     def fix_sequence_names(self, alignment: str, renamed_alignment: str) -> None:
         with open(alignment, "r") as handle_in, open(renamed_alignment, "w") as handle_out:
             for record in SeqIO.parse(handle_in, "fasta"):
-                record.id = record.id.split('|')[1]
+                if "|" in record.id:
+                    record.id = record.id.split('|')[1]
                 SeqIO.write(record, handle_out, "fasta")
 
     def mask_alignment(self, alignment: str) -> None:
