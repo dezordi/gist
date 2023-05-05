@@ -9,7 +9,7 @@ Just a set of scripts organized as a toolkit for conducting sub-sample analyses 
 ```bash
 git clone https://github.com/dezordiPhD/gist.git
 git add gist
-conda env create -f env/gis_ubuntu.yml
+conda env create -f env/gist_ubuntu.yml
 conda activate gist
 pip install .
 
