@@ -3,6 +3,7 @@ from gist.util import (
     read_get_similar_genomes_input,
     check_dir,
     check_file,
+    check_mask_pos_file,
 )
 import sys
 import click
@@ -341,3 +342,77 @@ class GetSimilarGenomes:
         metadata_df = pd.read_csv(self.metadata, sep="\t")
         selected_df = metadata_df[metadata_df["strain"].isin(gisaid_filtered_matches)]
         selected_df.to_csv(output_metadata, sep="\t", index=False)
+
+class GetAlignment:
+    def __init__(
+        self,
+        input_file: str,
+        reference: str,
+        output_dir: str,
+        threads: int,
+        mask_pos: str
+    ) -> None:
+        try:
+            for file in (
+                input_file,
+                reference
+            ):
+                check_file(file)
+            check_dir(output_dir)
+            if mask_pos:
+                check_file(mask_pos)
+                check_mask_pos_file(mask_pos)
+
+        except Exception as err:
+            click.echo(f"Failed to validate input files: {err}", err=True)
+            sys.exit(1)
+        
+        self.input_file = input_file
+        self.reference = reference
+        self.output_dir = output_dir
+        self.threads = threads
+        self.mask_pos = mask_pos
+        self.perform_alignment()
+
+    def fix_sequence_names(self, alignment: str, renamed_alignment: str) -> None:
+        with open(alignment, "r") as handle_in, open(renamed_alignment, "w") as handle_out:
+            for record in SeqIO.parse(handle_in, "fasta"):
+                record.id = record.id.split('|')[1]
+                SeqIO.write(record, handle_out, "fasta")
+
+    def mask_alignment(self, alignment: str) -> None:
+        alignment = SeqIO.parse(alignment, "fasta")
+        positions_file = self.mask_pos
+        positions = []
+        with open(positions_file) as f:
+            for line in f:
+                start, end = line.strip().split("\t")
+                positions.append((int(start), int(end)))
+
+        for record in alignment:
+            sequence = record.seq
+            for start, end in positions:
+                sequence = sequence[:start-1] + 'N'*(end-start+1) + sequence[end:]
+            record.seq = sequence
+
+        output_file = os.path.join(self.output_dir,f"sequences.masked.algn.fa")
+        SeqIO.write(alignment, output_file, "fasta")
+
+    def perform_alignment(self):
+        output = os.path.join(self.output_dir,f"sequences.algn.fa")
+        renamed_alignment = os.path.join(self.output_dir,f"sequences_correct_names.algn.fa")
+        mafft_cmd = f"mafft --inputorder \
+                     --keeplength \
+                     --compactmapout \
+                     --anysymbol \
+                     --kimura 1 \
+                     --add {self.input_file} \
+                     --6merpair \
+                     --thread {self.threads} {self.reference} > {output}"
+        run_mafft_cmd = subprocess.run(mafft_cmd, shell=True)
+        self.fix_sequence_names(output, renamed_alignment)
+
+        if mask_pos:
+            mask_alignment(renamed_alignment)
+        
+        os.remove(renamed_alignment)
