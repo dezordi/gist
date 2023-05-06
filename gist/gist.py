@@ -413,7 +413,7 @@ class GetAlignment:
         run_mafft_cmd = subprocess.run(mafft_cmd, shell=True)
         self.fix_sequence_names(output, renamed_alignment)
 
-        if mask_pos:
+        if self.mask_pos:
             self.mask_alignment(renamed_alignment)
         
         os.remove(renamed_alignment)
