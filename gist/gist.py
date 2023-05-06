@@ -382,7 +382,7 @@ class GetAlignment:
                 SeqIO.write(record, handle_out, "fasta")
 
     def mask_alignment(self, alignment: str) -> None:
-        alignment = SeqIO.parse(alignment, "fasta")
+        alignment_seqs = SeqIO.parse(alignment, "fasta")
         positions_file = self.mask_pos
         positions = []
         with open(positions_file) as f:
@@ -390,14 +390,14 @@ class GetAlignment:
                 start, end = line.strip().split("\t")
                 positions.append((int(start), int(end)))
 
-        for record in alignment:
+        for record in alignment_seqs:
             sequence = record.seq
             for start, end in positions:
                 sequence = sequence[:start-1] + 'N'*(end-start+1) + sequence[end:]
             record.seq = sequence
 
         output_file = os.path.join(self.output_dir,f"sequences.masked.algn.fa")
-        SeqIO.write(alignment, output_file, "fasta")
+        SeqIO.write(alignment_seqs, output_file, "fasta")
 
     def perform_alignment(self):
         output = os.path.join(self.output_dir,f"sequences.algn.fa")
