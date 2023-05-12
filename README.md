@@ -39,3 +39,11 @@ Get gisaid genomes based on blast analysis. The input json file should be config
 ```bash
 gist get-genomes --input <query_genomes.fasta> --sequences <gisaid_genomes.fasta> --metadata <gisaid_metadata.tsv> templates/get_similar_genomes.json
 ```
+
+#### get-algn
+
+Perform a `mafft add --keeplength` alignment and - if passed mask_pos - mask alignment positions
+
+```bash
+gist get-algn --input sequences.fa --reference reference.fa --threads 8 --mask_pos templates/mask_pos.tsv
+```
