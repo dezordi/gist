@@ -369,7 +369,7 @@ class GetAlignment:
     def fix_sequence_names(self, alignment: str, renamed_alignment: str) -> None:
         with open(alignment, "r") as handle_in, open(
             renamed_alignment, "w"
-        ) as handle_out:
+        ) as output_handle:
             for record in SeqIO.parse(handle_in, "fasta"):
                 if "|" in record.id:
                     record.id = record.id.split("|")[1]
