@@ -386,7 +386,7 @@ class GetAlignment:
                 start, end = line.strip().split("\t")
                 positions.append((int(start), int(end)))
 
-        output_path = os.path.join(self.output_dir, f"{self.input_file}.mask.algn")
+        output_path = os.path.join(self.output_dir, f"{os.path.basename(self.input_file)}.mask.algn")
         with open(output_path, "w") as output_handle:
             for record in alignment_seqs:
                 sequence = record.seq
@@ -401,7 +401,7 @@ class GetAlignment:
 
     def perform_alignment(self):
         output = os.path.join(self.output_dir, f"sequences.algn.fa")
-        renamed_alignment = os.path.join(self.output_dir, f"{self.input_file}.algn")
+        renamed_alignment = os.path.join(self.output_dir, f"{os.path.basename(self.input_file)}.algn")
         mafft_cmd = f"mafft --inputorder \
                      --keeplength \
                      --compactmapout \
