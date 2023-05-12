@@ -128,8 +128,8 @@ class GetSimilarGenomes:
     """
 
     job_name: str
-    min_id: float = (99.49)
-    max_id: float = (99.99)
+    min_id: float = 99.49
+    max_id: float = 99.99
     max_number_of_similar_genomes: int = 100
 
     def init(

@@ -47,20 +47,13 @@ def get_genomes(
         get_similar_genomes_sampling_schema,
     )
 
+
 @cli.command()
 @click.option("--input", help="Fasta file with sequences to be aligned", required=True)
 @click.option("--reference", help="Reference genome alignment", required=True)
 @click.option("--output_dir", help="path to output directory", default=".")
 @click.option("--threads", help="threads", default=2, type=int)
 @click.option("--mask_pos", help="Reference genome positions to mask")
-def get_algn(
-    input, reference, output_dir, threads, mask_pos
-):
+def get_algn(input, reference, output_dir, threads, mask_pos):
     "Perform alignment and mask positions"
-    GetAlignment(
-        input,
-        reference,
-        output_dir,
-        threads,
-        mask_pos
-    )
+    GetAlignment(input, reference, output_dir, threads, mask_pos)

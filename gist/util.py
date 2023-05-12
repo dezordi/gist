@@ -36,6 +36,7 @@ def check_file(file: str) -> Exception:
     if os.path.isfile(file) == False:
         raise InvalidInput(f"{file} isn't a valid file")
 
+
 def check_mask_pos_file(file: str) -> Exception:
     with open(file, "r") as file_reader:
         for line in file_reader:
@@ -43,4 +44,6 @@ def check_mask_pos_file(file: str) -> Exception:
             if len(columns) != 2:
                 raise InvalidInput(f"{file} File should have two columns")
             if int(columns[0]) >= int(columns[1]):
-                raise InvalidInput(f"{file} Start mask site should be lower than end mask site")
+                raise InvalidInput(
+                    f"{file} Start mask site should be lower than end mask site"
+                )

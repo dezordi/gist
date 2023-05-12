@@ -301,14 +301,8 @@ class GetSimilarGenomes:
         )
         blast_results_df = blast_results_df[blast_results_df["qcovhsp"] >= 99.9]
         blast_results_df = blast_results_df[
-            (
-                blast_results_df["pident"]
-                >= self.valid_subsampling_schema.min_id
-            )
-            & (
-                blast_results_df["pident"]
-                <= self.valid_subsampling_schema.max_id
-            )
+            (blast_results_df["pident"] >= self.valid_subsampling_schema.min_id)
+            & (blast_results_df["pident"] <= self.valid_subsampling_schema.max_id)
         ]
         blast_results_df = blast_results_df.sort_values(by="bitscore", ascending=False)
         blast_results_df = blast_results_df.drop_duplicates(subset=["sseqid"])
@@ -343,6 +337,7 @@ class GetSimilarGenomes:
         selected_df = metadata_df[metadata_df["strain"].isin(gisaid_filtered_matches)]
         selected_df.to_csv(output_metadata, sep="\t", index=False)
 
+
 class GetAlignment:
     def __init__(
         self,
@@ -350,13 +345,10 @@ class GetAlignment:
         reference: str,
         output_dir: str,
         threads: int,
-        mask_pos: str
+        mask_pos: str,
     ) -> None:
         try:
-            for file in (
-                input_file,
-                reference
-            ):
+            for file in (input_file, reference):
                 check_file(file)
             check_dir(output_dir)
             if mask_pos:
@@ -366,7 +358,7 @@ class GetAlignment:
         except Exception as err:
             click.echo(f"Failed to validate input files: {err}", err=True)
             sys.exit(1)
-        
+
         self.input_file = input_file
         self.reference = reference
         self.output_dir = output_dir
@@ -375,11 +367,15 @@ class GetAlignment:
         self.perform_alignment()
 
     def fix_sequence_names(self, alignment: str, renamed_alignment: str) -> None:
-        with open(alignment, "r") as handle_in, open(renamed_alignment, "w") as handle_out:
+        with open(alignment, "r") as handle_in, open(
+            renamed_alignment, "w"
+        ) as handle_out:
             for record in SeqIO.parse(handle_in, "fasta"):
                 if "|" in record.id:
-                    record.id = record.id.split('|')[1]
-                SeqIO.write(record, handle_out, "fasta")
+                    record.id = record.id.split("|")[1]
+                output_handle.write(
+                    ">" + str(record.id) + "\n" + str(record.seq) + "\n"
+                )
 
     def mask_alignment(self, alignment: str) -> None:
         alignment_seqs = SeqIO.parse(alignment, "fasta")
@@ -390,18 +386,22 @@ class GetAlignment:
                 start, end = line.strip().split("\t")
                 positions.append((int(start), int(end)))
 
-        for record in alignment_seqs:
-            sequence = record.seq
-            for start, end in positions:
-                sequence = sequence[:start-1] + 'N'*(end-start+1) + sequence[end:]
-            record.seq = sequence
-
-        output_file = os.path.join(self.output_dir,f"sequences.masked.algn.fa")
-        SeqIO.write(alignment_seqs, output_file, "fasta")
+        output_path = os.path.join(self.output_dir, f"{self.input_file}.mask.algn")
+        with open(output_path, "w") as output_handle:
+            for record in alignment_seqs:
+                sequence = record.seq
+                for start, end in positions:
+                    sequence = (
+                        sequence[: start - 1] + "N" * (end - start + 1) + sequence[end:]
+                    )
+                record.seq = sequence
+                output_handle.write(
+                    ">" + str(record.id) + "\n" + str(record.seq) + "\n"
+                )
 
     def perform_alignment(self):
-        output = os.path.join(self.output_dir,f"sequences.algn.fa")
-        renamed_alignment = os.path.join(self.output_dir,f"sequences_correct_names.algn.fa")
+        output = os.path.join(self.output_dir, f"sequences.algn.fa")
+        renamed_alignment = os.path.join(self.output_dir, f"{self.input_file}.algn")
         mafft_cmd = f"mafft --inputorder \
                      --keeplength \
                      --compactmapout \
@@ -415,5 +415,5 @@ class GetAlignment:
 
         if self.mask_pos:
             self.mask_alignment(renamed_alignment)
-        
-        os.remove(renamed_alignment)
+
+        os.remove(output)
