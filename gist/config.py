@@ -131,6 +131,7 @@ class GetSimilarGenomes:
     min_id: float = 99.49
     max_id: float = 99.99
     max_number_of_similar_genomes: int = 100
+    max_number_of_genomes_per_query: int = 3
 
     def init(
         self,
@@ -138,6 +139,7 @@ class GetSimilarGenomes:
         min_id: float,
         max_id: float,
         max_number_of_similar_genomes: int,
+        max_number_of_genomes_per_query: int,
     ) -> None:
         assert max_id > min_id, "The mininum id should be lower than maximum id"
 
@@ -145,3 +147,4 @@ class GetSimilarGenomes:
         self.min_id = min_id
         self.max_id = max_id
         self.max_number_of_similar_genomes = max_number_of_similar_genomes
+        self.max_number_of_genomes_per_query = max_number_of_genomes_per_query

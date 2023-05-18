@@ -306,6 +306,7 @@ class GetSimilarGenomes:
         ]
         blast_results_df = blast_results_df.sort_values(by="bitscore", ascending=False)
         blast_results_df = blast_results_df.drop_duplicates(subset=["sseqid"])
+        blast_results_df = blast_results_df.groupby("qseqid").head(valid_subsampling_schema.max_number_of_genomes_per_query)
         blast_results_df = blast_results_df.head(
             self.valid_subsampling_schema.max_number_of_similar_genomes
         )
